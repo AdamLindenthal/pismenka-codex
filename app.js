@@ -155,6 +155,8 @@ const elements = {
   missionFill: document.querySelector("[data-mission-fill]"),
   missionMarker: document.querySelector("[data-mission-marker]"),
   soundToggle: document.querySelector("[data-sound-toggle]"),
+  maxLengthInput: document.querySelector("[data-max-length]"),
+  maxLengthValue: document.querySelector("[data-max-length-value]"),
   rewardModal: document.querySelector("[data-reward-modal]"),
   rewardText: document.querySelector("[data-reward-text]"),
   rewardClose: document.querySelector("[data-reward-close]"),
@@ -174,7 +176,10 @@ const STORAGE_KEYS = {
   sounds: "pismenkova_hra_sounds_enabled_v1",
   rewards: "pismenkova_hra_reward_progress_v1",
   sideTab: "pismenkova_hra_side_tab_v1",
+  maxLength: "pismenkova_hra_max_length_v1",
 };
+
+const DEFAULT_MAX_WORD_LENGTH = 7;
 
 const state = {
   enabledLetters: new Set(LETTERS),
@@ -190,6 +195,7 @@ const state = {
   unlockedStickers: new Set(),
   audioCache: {},
   activeSideTab: "stickers",
+  maxWordLength: DEFAULT_MAX_WORD_LENGTH,
 };
 
 const SOUND_PATHS = {
@@ -307,6 +313,10 @@ function persistEnabledLetters() {
 
 function persistSideTab() {
   safeSave(STORAGE_KEYS.sideTab, state.activeSideTab);
+}
+
+function persistMaxLength() {
+  safeSave(STORAGE_KEYS.maxLength, state.maxWordLength);
 }
 
 function persistRewards() {
@@ -467,6 +477,13 @@ function hydrateFromStorage() {
 
   const savedTab = safeLoad(STORAGE_KEYS.sideTab, "stickers");
   state.activeSideTab = savedTab === "settings" ? "settings" : "stickers";
+
+  const savedMax = Number(safeLoad(STORAGE_KEYS.maxLength, DEFAULT_MAX_WORD_LENGTH));
+  if (!Number.isNaN(savedMax) && savedMax >= 3 && savedMax <= 12) {
+    state.maxWordLength = savedMax;
+  } else {
+    state.maxWordLength = DEFAULT_MAX_WORD_LENGTH;
+  }
 }
 
 function wordUsesDisabledLetters(word) {
@@ -476,7 +493,12 @@ function wordUsesDisabledLetters(word) {
 }
 
 function getFilteredWords() {
-  return state.words.filter((word) => !wordUsesDisabledLetters(word));
+  const withinLength = state.words.filter(
+    (word) => word.length <= state.maxWordLength
+  );
+  const pool = withinLength.length ? withinLength : state.words;
+  const filtered = pool.filter((word) => !wordUsesDisabledLetters(word));
+  return filtered;
 }
 
 function capitalize(word) {
@@ -532,7 +554,10 @@ function updateWord() {
   if (!choice) {
     elements.word.textContent = "---";
     state.renderedWord = null;
-    setFeedback("Žádné slovo neodpovídá výběru písmen.", "error");
+    setFeedback(
+      "Pro aktuální nastavení nejsou k dispozici žádná slova. Zkuste zvýšit maximální délku slova nebo změnit písmena.",
+      "error"
+    );
     return;
   }
   state.renderedWord = randomCase(choice);
@@ -552,6 +577,19 @@ function setMicListening(isListening) {
     elements.mic.textContent = isListening ? "Poslouchám..." : "Řekni slovo";
   }
   elements.mic.disabled = !state.currentWord;
+}
+
+function setMaxLength(value) {
+  const clamped = Math.min(12, Math.max(3, Number(value) || DEFAULT_MAX_WORD_LENGTH));
+  state.maxWordLength = clamped;
+  if (elements.maxLengthInput) {
+    elements.maxLengthInput.value = clamped;
+  }
+  if (elements.maxLengthValue) {
+    elements.maxLengthValue.textContent = `${clamped} písmen`;
+  }
+  persistMaxLength();
+  updateWord();
 }
 
 function stopRecognition() {
@@ -695,6 +733,12 @@ function init() {
     elements.rewardModal.addEventListener("click", (e) => {
       if (e.target === elements.rewardModal) hideReward();
     });
+  }
+  if (elements.maxLengthInput) {
+    elements.maxLengthInput.addEventListener("input", (e) =>
+      setMaxLength(e.target.value)
+    );
+    setMaxLength(state.maxWordLength);
   }
   if (!hasSpeechRecognition()) {
     elements.mic.disabled = true;

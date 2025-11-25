@@ -204,6 +204,39 @@ h1 {
   width: 100%;
 }
 
+.setting-row {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #cde2fa;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.setting-row__label {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.setting-row__control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-row__control input[type="range"] {
+  flex: 1;
+  accent-color: #6c5ce7;
+}
+
+.setting-row__value {
+  min-width: 72px;
+  text-align: right;
+  font-weight: 800;
+  color: #3c5572;
+}
+
 .panel::before {
   content: "";
   position: absolute;

@@ -6,3 +6,4 @@
 - Reward progress, sounds toggle state, and stickers persist via localStorage; mission bar marker now uses the XP orb and respects progress.
 - Left panel now uses tabs: default “Moje nálepky” gallery and a “Nastavení” tab that holds the letter grid; tab state persists so kids see stickers first while parents can access settings.
 - UI polish keeps Minecraft/lab theme with blocky panels, animated tiles/buttons/mascots, and responsive layout across desktop, tablet, mobile, including Safari.
+- Added a parent-focused “Maximální délka slova” slider in the Nastavení tab (default 7, range 3–12) that filters available words; preference is stored in localStorage and updates the word pool immediately.
