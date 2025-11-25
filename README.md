@@ -6,6 +6,7 @@ Jednoduchá webová aplikace pro děti procvičující čtení českých slov s 
 - Otevři projekt v terminálu a spusť statický server (mikrofon ve většině prohlížečů potřebuje zabezpečený kontext):
   - `python3 -m http.server 4173` nebo `npx serve .`
 - Otevři `http://localhost:4173` v prohlížeči (Safari/Chrome na iOS/Android/desktop).
+- Pro testování na zařízeních přes síť použij HTTPS (GitHub Pages nebo vlastní server s certifikátem); bez HTTPS prohlížeče mikrofon zablokují.
 
 ## Použití
 - Vyber/odeber písmena v panelu, slova s vypnutými písmeny se nebudou zobrazovat.

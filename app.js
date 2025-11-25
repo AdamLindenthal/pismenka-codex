@@ -154,6 +154,10 @@ const elements = {
   next: document.querySelector("[data-next]"),
 };
 
+const UA = navigator.userAgent || "";
+const IS_IOS = /iPad|iPhone|iPod/.test(UA);
+const IS_CHROME_IOS = /CriOS/.test(UA);
+
 const STORAGE_KEYS = {
   letters: "pismenkova_hra_enabled_letters_v1",
   panel: "pismenkova_hra_panel_open_v1",
@@ -282,6 +286,10 @@ function normalizeWord(word) {
   return word ? word.trim().toLocaleLowerCase("cs-CZ") : "";
 }
 
+function hasSpeechRecognition() {
+  return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
 function pickRandomWord() {
   const pool = getFilteredWords();
   if (!pool.length) {
@@ -306,14 +314,18 @@ function updateWord() {
   elements.word.classList.remove("bump");
   void elements.word.offsetWidth; // restart animation
   elements.word.classList.add("bump");
-  setFeedback("Řekni slovo nebo vyber další.");
+  setFeedback(
+    elements.mic.disabled
+      ? "Slovo připraveno, ale mikrofon není dostupný."
+      : "Řekni slovo nebo vyber další."
+  );
 }
 
 function setMicListening(isListening) {
   state.listening = isListening;
   elements.mic.classList.toggle("is-listening", isListening);
   elements.mic.textContent = isListening ? "🎙️ Poslouchám..." : "🎤 Řekni slovo";
-  elements.mic.disabled = !state.currentWord || (!isListening && !state.renderedWord);
+  elements.mic.disabled = !state.currentWord;
 }
 
 function stopRecognition() {
@@ -356,6 +368,8 @@ function handleRecognitionError(event) {
   const message =
     event.error === "no-speech"
       ? "Neslyším nic. Zkus to znovu."
+      : event.error === "not-allowed" || event.error === "service-not-allowed"
+      ? "Povol přístup k mikrofonu v prohlížeči nebo nastaveních zařízení."
       : "Došlo k chybě mikrofonu. Zkus to prosím znovu.";
   setFeedback(message, "error");
   stopRecognition();
@@ -366,6 +380,16 @@ function startRecognition() {
     window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     setFeedback("Prohlížeč nepodporuje rozpoznávání řeči.", "error");
+    elements.mic.disabled = true;
+    return;
+  }
+  if (!window.isSecureContext) {
+    setFeedback("Mikrofon potřebuje HTTPS nebo localhost.", "error");
+    elements.mic.disabled = true;
+    return;
+  }
+  if (IS_CHROME_IOS) {
+    setFeedback("Chrome na iOS nepodporuje mikrofon pro Web Speech API. Použij Safari.", "error");
     elements.mic.disabled = true;
     return;
   }
@@ -381,17 +405,33 @@ function startRecognition() {
   recognition.maxAlternatives = 3;
   recognition.onresult = handleRecognitionResult;
   recognition.onerror = handleRecognitionError;
+  recognition.onspeechend = () => {
+    try {
+      recognition.stop();
+    } catch (err) {
+      // ignore stop errors
+    }
+  };
+  recognition.onstart = () => {
+    setMicListening(true);
+    setFeedback("Poslouchám, řekni slovo nahlas.");
+    if (state.timeoutId) clearTimeout(state.timeoutId);
+    state.timeoutId = window.setTimeout(() => {
+      setFeedback("Čas vypršel, zkus to znovu.", "error");
+      stopRecognition();
+    }, 7000);
+  };
   recognition.onend = () => {
+    // onend fires on iOS even after stop(); ensure we reset UI
     stopRecognition();
   };
   state.recognition = recognition;
-  setMicListening(true);
-  setFeedback("Poslouchám, řekni slovo nahlas.");
-  recognition.start();
-  state.timeoutId = window.setTimeout(() => {
-    setFeedback("Čas vypršel, zkus to znovu.", "error");
+  try {
+    recognition.start();
+  } catch (err) {
+    setFeedback("Nelze spustit mikrofon, zkus to prosím znovu.", "error");
     stopRecognition();
-  }, 7000);
+  }
 }
 
 function init() {
@@ -405,6 +445,18 @@ function init() {
   elements.panelToggle.addEventListener("click", togglePanel);
   elements.next.addEventListener("click", updateWord);
   elements.mic.addEventListener("click", startRecognition);
+  if (!hasSpeechRecognition() || IS_CHROME_IOS) {
+    elements.mic.disabled = true;
+    setFeedback(
+      IS_CHROME_IOS
+        ? "Chrome na iOS nepodporuje mikrofon. Otevři v Safari."
+        : "Prohlížeč nepodporuje rozpoznávání řeči.",
+      "error"
+    );
+  } else if (!window.isSecureContext) {
+    elements.mic.disabled = true;
+    setFeedback("Mikrofon potřebuje HTTPS nebo localhost.", "error");
+  }
   updateWord();
 }
 
