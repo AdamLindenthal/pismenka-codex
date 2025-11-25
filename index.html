@@ -4,9 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Čtení slov pro děti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="scene-decor" aria-hidden="true">
+    <img src="/assets/mascot-standing.png" class="mascot mascot--standing" alt="">
+    <img src="/assets/mascot-sitting.png" class="mascot mascot--sitting" alt="">
+  </div>
+
   <header class="app-header">
     <h1>Čtení slov</h1>
     <p class="tagline">Procvičování výslovnosti s mikrofonem</p>
@@ -18,10 +26,16 @@
         <h2>Výběr písmen</h2>
         <button class="ghost-btn" data-toggle-panel aria-expanded="true">Skrýt</button>
       </div>
-      <div class="panel__letters" data-letters></div>
+      <div class="panel__letters letter-grid" data-letters></div>
     </section>
 
     <section class="practice">
+      <div class="mission">
+        <div class="mission__label">Dnešní mise: 10 slov</div>
+        <div class="mission__bar">
+          <span class="mission__fill"></span>
+        </div>
+      </div>
       <div class="word-card">
         <p class="word" data-word>---</p>
       </div>
