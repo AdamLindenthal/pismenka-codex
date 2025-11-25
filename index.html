@@ -17,7 +17,12 @@
 
   <header class="app-header">
     <h1>Čtení slov</h1>
-    <p class="tagline">Procvičování výslovnosti s mikrofonem</p>
+    <div class="header-row">
+      <p class="tagline">Procvičování výslovnosti s mikrofonem</p>
+      <button class="ghost-btn sound-toggle" type="button" data-sound-toggle aria-pressed="false">
+        🔈 Zvuky: vyp
+      </button>
+    </div>
   </header>
 
   <main class="app">
@@ -31,12 +36,18 @@
 
     <section class="practice">
       <div class="mission">
-        <div class="mission__label">Dnešní mise: 10 slov</div>
-        <div class="mission__bar">
-          <span class="mission__fill"></span>
+        <div class="mission__label">
+          <span class="mission__icon" aria-hidden="true">⭐</span>
+          <span>Dnešní mise: 10 slov</span>
         </div>
+        <div class="mission__bar">
+          <span class="mission__fill" data-mission-fill></span>
+          <span class="mission__marker" data-mission-marker></span>
+        </div>
+        <p class="mission__tip">💡 Tip: řekni slovo nahlas do mikrofonu.</p>
       </div>
       <div class="word-card">
+        <span class="word-card__badge" aria-hidden="true">🔬</span>
         <p class="word" data-word>---</p>
       </div>
       <div class="controls">
@@ -46,6 +57,15 @@
       <div class="feedback" data-feedback>Vyber písmena a spusť trénink.</div>
     </section>
   </main>
+
+  <div class="reward-modal" data-reward-modal hidden>
+    <div class="reward-modal__content">
+      <button class="reward-modal__close" type="button" data-reward-close aria-label="Zavřít">✕</button>
+      <div class="reward-modal__icon">🏅</div>
+      <h3>Skvělé! Získal jsi nálepku!</h3>
+      <p class="reward-modal__text" data-reward-text></p>
+    </div>
+  </div>
 
   <footer class="app-footer">
     <p>Všechny texty jsou v češtině, funguje offline po prvním načtení.</p>

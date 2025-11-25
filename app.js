@@ -152,6 +152,12 @@ const elements = {
   panelToggle: document.querySelector("[data-toggle-panel]"),
   mic: document.querySelector("[data-mic]"),
   next: document.querySelector("[data-next]"),
+  missionFill: document.querySelector("[data-mission-fill]"),
+  missionMarker: document.querySelector("[data-mission-marker]"),
+  soundToggle: document.querySelector("[data-sound-toggle]"),
+  rewardModal: document.querySelector("[data-reward-modal]"),
+  rewardText: document.querySelector("[data-reward-text]"),
+  rewardClose: document.querySelector("[data-reward-close]"),
 };
 
 const UA = navigator.userAgent || "";
@@ -161,6 +167,8 @@ const IS_CHROME_IOS = /CriOS/.test(UA);
 const STORAGE_KEYS = {
   letters: "pismenkova_hra_enabled_letters_v1",
   panel: "pismenkova_hra_panel_open_v1",
+  sounds: "pismenkova_hra_sounds_enabled_v1",
+  rewards: "pismenkova_hra_reward_progress_v1",
 };
 
 const state = {
@@ -172,6 +180,17 @@ const state = {
   recognition: null,
   listening: false,
   timeoutId: null,
+  soundsEnabled: false,
+  successCount: 0,
+  earnedThresholds: new Set(),
+  audioCache: {},
+};
+
+const REWARD_THRESHOLDS = [5, 10, 20];
+const SOUND_PATHS = {
+  tile: "/assets/sfx/tile-click.ogg",
+  success: "/assets/sfx/success.ogg",
+  error: "/assets/sfx/try-again.ogg",
 };
 
 function safeLoad(key, fallback) {
@@ -189,6 +208,30 @@ function safeSave(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (err) {
     console.warn("Nepodařilo se uložit do localStorage", err);
+  }
+}
+
+function getAudio(name) {
+  if (!SOUND_PATHS[name]) return null;
+  if (!state.audioCache[name]) {
+    const audio = new Audio(SOUND_PATHS[name]);
+    audio.preload = "auto";
+    state.audioCache[name] = audio;
+  }
+  return state.audioCache[name];
+}
+
+function playSound(name) {
+  if (!state.soundsEnabled) return;
+  const audio = getAudio(name);
+  if (!audio) return;
+  try {
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Ignore autoplay errors; sounds are optional
+    });
+  } catch (err) {
+    // swallow sound errors
   }
 }
 
@@ -219,6 +262,7 @@ function toggleLetter(letter, node) {
     node.classList.remove("is-off");
     node.setAttribute("aria-pressed", "true");
   }
+  playSound("tile");
   persistEnabledLetters();
   updateWord();
 }
@@ -236,6 +280,79 @@ function persistEnabledLetters() {
   safeSave(STORAGE_KEYS.letters, Array.from(state.enabledLetters));
 }
 
+function persistRewards() {
+  safeSave(STORAGE_KEYS.rewards, {
+    successCount: state.successCount,
+    earned: Array.from(state.earnedThresholds),
+  });
+}
+
+function persistSounds() {
+  safeSave(STORAGE_KEYS.sounds, state.soundsEnabled);
+}
+
+function updateSoundToggleUI() {
+  if (!elements.soundToggle) return;
+  elements.soundToggle.setAttribute("aria-pressed", String(state.soundsEnabled));
+  elements.soundToggle.textContent = state.soundsEnabled
+    ? "🔊 Zvuky: zap"
+    : "🔈 Zvuky: vyp";
+}
+
+function toggleSounds() {
+  state.soundsEnabled = !state.soundsEnabled;
+  persistSounds();
+  updateSoundToggleUI();
+}
+
+function nextRewardThreshold() {
+  return (
+    REWARD_THRESHOLDS.find((t) => t > state.successCount) ||
+    REWARD_THRESHOLDS[REWARD_THRESHOLDS.length - 1]
+  );
+}
+
+function updateMissionUI() {
+  if (!elements.missionFill || !elements.missionMarker) return;
+  const target = nextRewardThreshold();
+  const previousThreshold = REWARD_THRESHOLDS.reduce(
+    (acc, t) => (t < target ? t : acc),
+    0
+  );
+  const span = target - previousThreshold || target || 1;
+  const progress = Math.min(
+    1,
+    Math.max(0, (state.successCount - previousThreshold) / span)
+  );
+  const width = `${Math.max(6, progress * 100)}%`;
+  elements.missionFill.style.width = width;
+  elements.missionMarker.style.left = width;
+}
+
+function showReward(threshold) {
+  if (!elements.rewardModal || !elements.rewardText) return;
+  elements.rewardText.textContent = `Splněno ${threshold} slov!`;
+  elements.rewardModal.hidden = false;
+}
+
+function hideReward() {
+  if (!elements.rewardModal) return;
+  elements.rewardModal.hidden = true;
+}
+
+function recordSuccess() {
+  state.successCount += 1;
+  const newlyHit = REWARD_THRESHOLDS.find(
+    (t) => state.successCount === t && !state.earnedThresholds.has(t)
+  );
+  if (newlyHit) {
+    state.earnedThresholds.add(newlyHit);
+    showReward(newlyHit);
+  }
+  persistRewards();
+  updateMissionUI();
+}
+
 function hydrateFromStorage() {
   const savedLetters = safeLoad(STORAGE_KEYS.letters, null);
   if (Array.isArray(savedLetters) && savedLetters.length) {
@@ -246,6 +363,16 @@ function hydrateFromStorage() {
 
   const panelOpen = safeLoad(STORAGE_KEYS.panel, true);
   state.panelCollapsed = !panelOpen;
+
+  const soundOn = safeLoad(STORAGE_KEYS.sounds, false);
+  state.soundsEnabled = Boolean(soundOn);
+
+  const rewardProgress = safeLoad(STORAGE_KEYS.rewards, {
+    successCount: 0,
+    earned: [],
+  });
+  state.successCount = Number(rewardProgress.successCount) || 0;
+  state.earnedThresholds = new Set(rewardProgress.earned || []);
 }
 
 function wordUsesDisabledLetters(word) {
@@ -356,10 +483,13 @@ function handleRecognitionResult(event) {
     normalizeWord(spoken) === normalizeWord(state.currentWord || "");
   if (matches) {
     setFeedback(`Výborně! Řekl jsi: ${spoken}`, "success");
+    playSound("success");
+    recordSuccess();
     stopRecognition();
     setTimeout(updateWord, 900);
   } else {
     setFeedback(`Zkus to znovu. Slyšel jsem: ${spoken}`, "error");
+    playSound("error");
     stopRecognition();
   }
 }
@@ -377,6 +507,7 @@ function handleRecognitionError(event) {
     "language-not-supported": "Vybraný jazyk není podporován.",
   };
   const message = errorMessages[event.error] || "Došlo k chybě mikrofonu. Zkus to prosím znovu.";
+  playSound("error");
   setFeedback(message, "error");
   stopRecognition();
 }
@@ -454,6 +585,18 @@ function init() {
   elements.panelToggle.addEventListener("click", togglePanel);
   elements.next.addEventListener("click", updateWord);
   elements.mic.addEventListener("click", startRecognition);
+  if (elements.soundToggle) {
+    elements.soundToggle.addEventListener("click", toggleSounds);
+    updateSoundToggleUI();
+  }
+  if (elements.rewardClose) {
+    elements.rewardClose.addEventListener("click", hideReward);
+  }
+  if (elements.rewardModal) {
+    elements.rewardModal.addEventListener("click", (e) => {
+      if (e.target === elements.rewardModal) hideReward();
+    });
+  }
   if (!hasSpeechRecognition()) {
     elements.mic.disabled = true;
     setFeedback("Prohlížeč nepodporuje rozpoznávání řeči.", "error");
@@ -461,6 +604,7 @@ function init() {
     elements.mic.disabled = true;
     setFeedback("Chrome na iOS nepodporuje mikrofon. Otevři v Safari.", "error");
   }
+  updateMissionUI();
   updateWord();
 }
 
