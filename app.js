@@ -209,19 +209,19 @@ const STICKERS = [
   {
     id: "sticker-01",
     name: "Statečný čtenář",
-    image: "/assets/sticker-01.png",
+    image: "assets/sticker-01.png",
     threshold: 5,
   },
   {
     id: "sticker-02",
     name: "Mistr kostek",
-    image: "/assets/sticker-02.png",
+    image: "assets/sticker-02.png",
     threshold: 10,
   },
   {
     id: "sticker-03",
     name: "Atomový génius",
-    image: "/assets/sticker-03.png",
+    image: "assets/sticker-03.png",
     threshold: 20,
   },
 ];
@@ -338,7 +338,7 @@ function updateSoundToggleUI() {
   const img = elements.soundToggle.querySelector("img");
   const label = elements.soundToggle.querySelector(".sound-toggle__label");
   if (img) {
-    img.src = state.soundsEnabled ? "/assets/speaker-on.png" : "/assets/speaker-off.png";
+    img.src = state.soundsEnabled ? "assets/speaker-on.png" : "assets/speaker-off.png";
     img.alt = state.soundsEnabled ? "Zvuky zapnuté" : "Zvuky vypnuté";
   }
   if (label) label.textContent = "Zvuky";
