@@ -199,9 +199,11 @@ const state = {
 };
 
 const SOUND_PATHS = {
-  tile: "/assets/sfx/tile-click.ogg",
-  success: "/assets/sfx/success.ogg",
-  error: "/assets/sfx/try-again.ogg",
+  tile: "/assets/sounds/tile-click.m4a",
+  success: "/assets/sounds/success.m4a",
+  error: "/assets/sounds/try-again.m4a",
+  sticker: "/assets/sounds/sticker-unlocked.m4a",
+  micOn: "/assets/sounds/mic-on.m4a",
 };
 const STICKERS = [
   {
@@ -399,6 +401,7 @@ function recordSuccess() {
   if (newlyUnlocked.length) {
     const sticker = newlyUnlocked[0];
     state.unlockedStickers.add(sticker.id);
+    playSound("sticker");
     showReward(sticker.threshold);
     renderStickers();
   }

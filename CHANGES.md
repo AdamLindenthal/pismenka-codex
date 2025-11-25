@@ -8,3 +8,4 @@
 - UI polish keeps Minecraft/lab theme with blocky panels, animated tiles/buttons/mascots, and responsive layout across desktop, tablet, mobile, including Safari.
 - Added a parent-focused “Maximální délka slova” slider in the Nastavení tab (default 7, range 3–12) that filters available words; preference is stored in localStorage and updates the word pool immediately.
 - Strengthened motion: mascots float with bigger bob/tilt, XP orb gently bobs/scales, and a few background atoms/cubes drift; main action buttons are now icon-only (microphone/next) with aria labels and sr-only text for accessibility.
+- Updated sound mappings to new transparent PNG set and .m4a audio: tile, success, try-again now point to /assets/sounds/*.m4a; added sticker unlock sound; mic-on reserved for later.
