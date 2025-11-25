@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Čtení slov pro děti</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Čtení slov</h1>
+    <p class="tagline">Procvičování výslovnosti s mikrofonem</p>
+  </header>
+
+  <main class="app">
+    <section class="panel" data-panel>
+      <div class="panel__header">
+        <h2>Výběr písmen</h2>
+        <button class="ghost-btn" data-toggle-panel aria-expanded="true">Skrýt</button>
+      </div>
+      <div class="panel__letters" data-letters></div>
+    </section>
+
+    <section class="practice">
+      <div class="word-card">
+        <p class="word" data-word>---</p>
+      </div>
+      <div class="controls">
+        <button class="primary" data-mic type="button">🎤 Řekni slovo</button>
+        <button class="secondary" data-next type="button">Další slovo</button>
+      </div>
+      <div class="feedback" data-feedback>Vyber písmena a spusť trénink.</div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Všechny texty jsou v češtině, funguje offline po prvním načtení.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
