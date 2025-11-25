@@ -19,19 +19,33 @@
     <h1>Čtení slov</h1>
     <div class="header-row">
       <p class="tagline">Procvičování výslovnosti s mikrofonem</p>
-      <button class="ghost-btn sound-toggle" type="button" data-sound-toggle aria-pressed="false">
-        🔈 Zvuky: vyp
+      <button class="ghost-btn sound-toggle" type="button" data-sound-toggle aria-pressed="false" aria-label="Zvuky vypnuté">
+        <img src="/assets/speaker-off.png" alt="" class="icon icon--speaker" aria-hidden="true">
+        <span class="sound-toggle__label">Zvuky</span>
       </button>
     </div>
   </header>
 
   <main class="app">
     <section class="panel" data-panel>
-      <div class="panel__header">
-        <h2>Výběr písmen</h2>
-        <button class="ghost-btn" data-toggle-panel aria-expanded="true">Skrýt</button>
+      <div class="side-tabs" role="tablist" aria-label="Postranní volby">
+        <button class="side-tab side-tab--active" role="tab" aria-selected="true" data-tab-target="stickers">Moje nálepky</button>
+        <button class="side-tab" role="tab" aria-selected="false" data-tab-target="settings">Nastavení</button>
       </div>
-      <div class="panel__letters letter-grid" data-letters></div>
+      <div class="panel__content">
+        <div class="panel__stickers" data-tab-panel="stickers">
+          <div class="stickers" data-stickers>
+            <div class="stickers__title">Moje nálepky</div>
+            <div class="stickers__grid" data-stickers-grid></div>
+          </div>
+        </div>
+        <div class="panel__settings" data-tab-panel="settings" hidden>
+          <div class="panel__header">
+            <h2>Výběr písmen</h2>
+          </div>
+          <div class="panel__letters letter-grid" data-letters></div>
+        </div>
+      </div>
     </section>
 
     <section class="practice">
@@ -42,7 +56,7 @@
         </div>
         <div class="mission__bar">
           <span class="mission__fill" data-mission-fill></span>
-          <span class="mission__marker" data-mission-marker></span>
+          <img class="mission__marker" data-mission-marker src="/assets/xp-orb.png" alt="" aria-hidden="true">
         </div>
         <p class="mission__tip">💡 Tip: řekni slovo nahlas do mikrofonu.</p>
       </div>
@@ -51,8 +65,14 @@
         <p class="word" data-word>---</p>
       </div>
       <div class="controls">
-        <button class="primary" data-mic type="button">🎤 Řekni slovo</button>
-        <button class="secondary" data-next type="button">Další slovo</button>
+        <button class="primary" data-mic type="button" aria-label="Řekni slovo">
+          <img src="/assets/microphone.png" alt="" class="icon icon--mic" aria-hidden="true">
+          <span data-mic-label>Řekni slovo</span>
+        </button>
+        <button class="secondary" data-next type="button" aria-label="Další slovo">
+          <span>Další slovo</span>
+          <img src="/assets/next.png" alt="" class="icon icon--next" aria-hidden="true">
+        </button>
       </div>
       <div class="feedback" data-feedback>Vyber písmena a spusť trénink.</div>
     </section>
@@ -61,7 +81,9 @@
   <div class="reward-modal" data-reward-modal hidden>
     <div class="reward-modal__content">
       <button class="reward-modal__close" type="button" data-reward-close aria-label="Zavřít">✕</button>
-      <div class="reward-modal__icon">🏅</div>
+      <div class="reward-modal__icon">
+        <img src="" alt="" data-reward-image class="reward-modal__image">
+      </div>
       <h3>Skvělé! Získal jsi nálepku!</h3>
       <p class="reward-modal__text" data-reward-text></p>
     </div>

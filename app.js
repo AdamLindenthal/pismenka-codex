@@ -149,8 +149,8 @@ const elements = {
   word: document.querySelector("[data-word]"),
   feedback: document.querySelector("[data-feedback]"),
   panel: document.querySelector("[data-panel]"),
-  panelToggle: document.querySelector("[data-toggle-panel]"),
   mic: document.querySelector("[data-mic]"),
+  micLabel: document.querySelector("[data-mic-label]"),
   next: document.querySelector("[data-next]"),
   missionFill: document.querySelector("[data-mission-fill]"),
   missionMarker: document.querySelector("[data-mission-marker]"),
@@ -158,6 +158,10 @@ const elements = {
   rewardModal: document.querySelector("[data-reward-modal]"),
   rewardText: document.querySelector("[data-reward-text]"),
   rewardClose: document.querySelector("[data-reward-close]"),
+  rewardImage: document.querySelector("[data-reward-image]"),
+  stickersGrid: document.querySelector("[data-stickers-grid]"),
+  sideTabs: Array.from(document.querySelectorAll("[data-tab-target]")),
+  tabPanels: Array.from(document.querySelectorAll("[data-tab-panel]")),
 };
 
 const UA = navigator.userAgent || "";
@@ -169,6 +173,7 @@ const STORAGE_KEYS = {
   panel: "pismenkova_hra_panel_open_v1",
   sounds: "pismenkova_hra_sounds_enabled_v1",
   rewards: "pismenkova_hra_reward_progress_v1",
+  sideTab: "pismenkova_hra_side_tab_v1",
 };
 
 const state = {
@@ -182,16 +187,36 @@ const state = {
   timeoutId: null,
   soundsEnabled: false,
   successCount: 0,
-  earnedThresholds: new Set(),
+  unlockedStickers: new Set(),
   audioCache: {},
+  activeSideTab: "stickers",
 };
 
-const REWARD_THRESHOLDS = [5, 10, 20];
 const SOUND_PATHS = {
   tile: "/assets/sfx/tile-click.ogg",
   success: "/assets/sfx/success.ogg",
   error: "/assets/sfx/try-again.ogg",
 };
+const STICKERS = [
+  {
+    id: "sticker-01",
+    name: "Statečný čtenář",
+    image: "/assets/sticker-01.png",
+    threshold: 5,
+  },
+  {
+    id: "sticker-02",
+    name: "Mistr kostek",
+    image: "/assets/sticker-02.png",
+    threshold: 10,
+  },
+  {
+    id: "sticker-03",
+    name: "Atomový génius",
+    image: "/assets/sticker-03.png",
+    threshold: 20,
+  },
+];
 
 function safeLoad(key, fallback) {
   try {
@@ -280,10 +305,14 @@ function persistEnabledLetters() {
   safeSave(STORAGE_KEYS.letters, Array.from(state.enabledLetters));
 }
 
+function persistSideTab() {
+  safeSave(STORAGE_KEYS.sideTab, state.activeSideTab);
+}
+
 function persistRewards() {
   safeSave(STORAGE_KEYS.rewards, {
     successCount: state.successCount,
-    earned: Array.from(state.earnedThresholds),
+    earned: Array.from(state.unlockedStickers),
   });
 }
 
@@ -294,9 +323,17 @@ function persistSounds() {
 function updateSoundToggleUI() {
   if (!elements.soundToggle) return;
   elements.soundToggle.setAttribute("aria-pressed", String(state.soundsEnabled));
-  elements.soundToggle.textContent = state.soundsEnabled
-    ? "🔊 Zvuky: zap"
-    : "🔈 Zvuky: vyp";
+  const img = elements.soundToggle.querySelector("img");
+  const label = elements.soundToggle.querySelector(".sound-toggle__label");
+  if (img) {
+    img.src = state.soundsEnabled ? "/assets/speaker-on.png" : "/assets/speaker-off.png";
+    img.alt = state.soundsEnabled ? "Zvuky zapnuté" : "Zvuky vypnuté";
+  }
+  if (label) label.textContent = "Zvuky";
+  elements.soundToggle.setAttribute(
+    "aria-label",
+    state.soundsEnabled ? "Zvuky zapnuté" : "Zvuky vypnuté"
+  );
 }
 
 function toggleSounds() {
@@ -306,32 +343,36 @@ function toggleSounds() {
 }
 
 function nextRewardThreshold() {
-  return (
-    REWARD_THRESHOLDS.find((t) => t > state.successCount) ||
-    REWARD_THRESHOLDS[REWARD_THRESHOLDS.length - 1]
-  );
+  const thresholds = STICKERS.map((s) => s.threshold).sort((a, b) => a - b);
+  return thresholds.find((t) => t > state.successCount) || thresholds[thresholds.length - 1] || 1;
 }
 
 function updateMissionUI() {
   if (!elements.missionFill || !elements.missionMarker) return;
   const target = nextRewardThreshold();
-  const previousThreshold = REWARD_THRESHOLDS.reduce(
-    (acc, t) => (t < target ? t : acc),
-    0
-  );
+  const thresholds = STICKERS.map((s) => s.threshold).sort((a, b) => a - b);
+  const previousThreshold = thresholds.reduce((acc, t) => (t < target ? t : acc), 0);
   const span = target - previousThreshold || target || 1;
   const progress = Math.min(
     1,
     Math.max(0, (state.successCount - previousThreshold) / span)
   );
-  const width = `${Math.max(6, progress * 100)}%`;
+  const width = `${progress * 100}%`;
   elements.missionFill.style.width = width;
   elements.missionMarker.style.left = width;
 }
 
 function showReward(threshold) {
   if (!elements.rewardModal || !elements.rewardText) return;
-  elements.rewardText.textContent = `Splněno ${threshold} slov!`;
+  const sticker = STICKERS.find((s) => s.threshold === threshold);
+  const name = sticker ? sticker.name : `Splněno ${threshold} slov!`;
+  elements.rewardText.textContent = sticker
+    ? `Získal jsi nálepku: ${name}!`
+    : `Splněno ${threshold} slov!`;
+  if (elements.rewardImage) {
+    elements.rewardImage.src = sticker ? sticker.image : "";
+    elements.rewardImage.alt = sticker ? name : "";
+  }
   elements.rewardModal.hidden = false;
 }
 
@@ -342,15 +383,65 @@ function hideReward() {
 
 function recordSuccess() {
   state.successCount += 1;
-  const newlyHit = REWARD_THRESHOLDS.find(
-    (t) => state.successCount === t && !state.earnedThresholds.has(t)
+  const newlyUnlocked = STICKERS.filter(
+    (s) => state.successCount >= s.threshold && !state.unlockedStickers.has(s.id)
   );
-  if (newlyHit) {
-    state.earnedThresholds.add(newlyHit);
-    showReward(newlyHit);
+  if (newlyUnlocked.length) {
+    const sticker = newlyUnlocked[0];
+    state.unlockedStickers.add(sticker.id);
+    showReward(sticker.threshold);
+    renderStickers();
   }
   persistRewards();
   updateMissionUI();
+}
+
+function renderStickers() {
+  if (!elements.stickersGrid) return;
+  elements.stickersGrid.innerHTML = "";
+  STICKERS.forEach((sticker) => {
+    const unlocked = state.unlockedStickers.has(sticker.id);
+    const card = document.createElement("div");
+    card.className = "sticker-card";
+    if (unlocked) card.classList.add("is-unlocked");
+    const img = document.createElement("img");
+    img.src = sticker.image;
+    img.alt = sticker.name;
+    img.className = "sticker-card__image";
+    const name = document.createElement("div");
+    name.className = "sticker-card__name";
+    name.textContent = sticker.name;
+    if (!unlocked) {
+      const lock = document.createElement("span");
+      lock.className = "sticker-card__lock";
+      lock.textContent = "🔒";
+      card.appendChild(lock);
+    }
+    card.appendChild(img);
+    card.appendChild(name);
+    elements.stickersGrid.appendChild(card);
+  });
+}
+
+function setActiveSideTab(tab) {
+  state.activeSideTab = tab;
+  persistSideTab();
+  if (elements.sideTabs.length) {
+    elements.sideTabs.forEach((btn) => {
+      const isActive = btn.getAttribute("data-tab-target") === tab;
+      btn.classList.toggle("side-tab--active", isActive);
+      btn.setAttribute("aria-selected", String(isActive));
+    });
+  }
+  if (elements.tabPanels.length) {
+    elements.tabPanels.forEach((panel) => {
+      const isMatch = panel.getAttribute("data-tab-panel") === tab;
+      panel.hidden = !isMatch;
+    });
+  }
+  if (elements.letters) {
+    elements.letters.style.display = tab === "settings" ? "grid" : "none";
+  }
 }
 
 function hydrateFromStorage() {
@@ -372,7 +463,10 @@ function hydrateFromStorage() {
     earned: [],
   });
   state.successCount = Number(rewardProgress.successCount) || 0;
-  state.earnedThresholds = new Set(rewardProgress.earned || []);
+  state.unlockedStickers = new Set(rewardProgress.earned || []);
+
+  const savedTab = safeLoad(STORAGE_KEYS.sideTab, "stickers");
+  state.activeSideTab = savedTab === "settings" ? "settings" : "stickers";
 }
 
 function wordUsesDisabledLetters(word) {
@@ -407,6 +501,7 @@ function setFeedback(message, type = "info") {
   elements.feedback.className = "feedback";
   if (type === "success") elements.feedback.classList.add("is-success");
   if (type === "error") elements.feedback.classList.add("is-error");
+  // Remove any modal if present when showing new feedback
 }
 
 function normalizeWord(word) {
@@ -451,7 +546,11 @@ function updateWord() {
 function setMicListening(isListening) {
   state.listening = isListening;
   elements.mic.classList.toggle("is-listening", isListening);
-  elements.mic.textContent = isListening ? "🎙️ Poslouchám..." : "🎤 Řekni slovo";
+  if (elements.micLabel) {
+    elements.micLabel.textContent = isListening ? "Poslouchám..." : "Řekni slovo";
+  } else {
+    elements.mic.textContent = isListening ? "Poslouchám..." : "Řekni slovo";
+  }
   elements.mic.disabled = !state.currentWord;
 }
 
@@ -577,12 +676,12 @@ function startRecognition() {
 function init() {
   hydrateFromStorage();
   renderLetters();
-  if (state.panelCollapsed) {
-    elements.letters.style.display = "none";
-    elements.panelToggle.textContent = "Zobrazit";
-    elements.panelToggle.setAttribute("aria-expanded", "false");
-  }
-  elements.panelToggle.addEventListener("click", togglePanel);
+  setActiveSideTab(state.activeSideTab);
+  elements.sideTabs.forEach((btn) => {
+    btn.addEventListener("click", () =>
+      setActiveSideTab(btn.getAttribute("data-tab-target") || "stickers")
+    );
+  });
   elements.next.addEventListener("click", updateWord);
   elements.mic.addEventListener("click", startRecognition);
   if (elements.soundToggle) {
@@ -605,6 +704,7 @@ function init() {
     setFeedback("Chrome na iOS nepodporuje mikrofon. Otevři v Safari.", "error");
   }
   updateMissionUI();
+  renderStickers();
   updateWord();
 }
 
