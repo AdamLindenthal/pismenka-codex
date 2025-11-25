@@ -199,11 +199,11 @@ const state = {
 };
 
 const SOUND_PATHS = {
-  tile: "/assets/sounds/tile-click.m4a",
-  success: "/assets/sounds/success.m4a",
-  error: "/assets/sounds/try-again.m4a",
-  sticker: "/assets/sounds/sticker-unlocked.m4a",
-  micOn: "/assets/sounds/mic-on.m4a",
+  tile: "assets/sounds/tile-click.m4a",
+  success: "assets/sounds/success.m4a",
+  error: "assets/sounds/try-again.m4a",
+  sticker: "assets/sounds/sticker-unlocked.m4a",
+  micOn: "assets/sounds/mic-on.m4a",
 };
 const STICKERS = [
   {

@@ -45,5 +45,5 @@ Goal: ship a mobile-first, client-only Czech reading practice app per `spelling_
 - Selected letter styling: saturated green gradient, thicker border, purple glow, gentle looping pulse to highlight active tiles.
 - Mission bar: thicker rounded track with gradient, animated fill/marker tied to success count thresholds; tip bubble sits under the bar.
 - Reward/sticker MVP: counts successful recognitions, compares to thresholds (5/10/20), persists progress in localStorage, shows modal toast with close + tap-to-dismiss overlay.
-- Sound effects scaffold: optional toggle in header, plays tile/success/error sounds if enabled; expects assets under `/assets/sfx/`.
+- Sound effects scaffold: optional toggle in header, plays tile/success/error sounds if enabled; expects assets under `assets/sounds/`.
 - TODOs: replace placeholder icons/emojis with final art, add actual SFX files, extend reward set/badge art, hook mission bar to real goals as needed.

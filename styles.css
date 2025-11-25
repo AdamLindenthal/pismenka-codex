@@ -33,7 +33,7 @@ body {
       rgba(255, 255, 255, 0.9),
       rgba(245, 250, 255, 0) 60%
     ),
-    url("/assets/bg-pattern.svg");
+    url("assets/bg-pattern.svg");
   background-repeat: no-repeat, no-repeat, repeat;
   background-size: 70% 70%, 70% 70%, 200px 200px;
   background-attachment: fixed;
