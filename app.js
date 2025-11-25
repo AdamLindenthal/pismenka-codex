@@ -164,6 +164,7 @@ const elements = {
   stickersGrid: document.querySelector("[data-stickers-grid]"),
   sideTabs: Array.from(document.querySelectorAll("[data-tab-target]")),
   tabPanels: Array.from(document.querySelectorAll("[data-tab-panel]")),
+  version: document.querySelector("[data-version]"),
 };
 
 const UA = navigator.userAgent || "";
@@ -180,6 +181,7 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_MAX_WORD_LENGTH = 7;
+const APP_VERSION = window.APP_VERSION || "1.0.1";
 
 const state = {
   enabledLetters: new Set(LETTERS),
@@ -386,11 +388,13 @@ function showReward(threshold) {
     elements.rewardImage.alt = sticker ? name : "";
   }
   elements.rewardModal.hidden = false;
+  document.body.classList.add("modal-open");
 }
 
 function hideReward() {
   if (!elements.rewardModal) return;
   elements.rewardModal.hidden = true;
+  document.body.classList.remove("modal-open");
 }
 
 function recordSuccess() {
@@ -454,6 +458,9 @@ function setActiveSideTab(tab) {
   }
   if (elements.letters) {
     elements.letters.style.display = tab === "settings" ? "grid" : "none";
+  }
+  if (elements.version) {
+    elements.version.textContent = `Verze: ${APP_VERSION}`;
   }
 }
 
@@ -731,6 +738,12 @@ function init() {
   }
   if (elements.rewardClose) {
     elements.rewardClose.addEventListener("click", hideReward);
+    elements.rewardClose.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        hideReward();
+      }
+    });
   }
   if (elements.rewardModal) {
     elements.rewardModal.addEventListener("click", (e) => {

@@ -2,6 +2,8 @@
 
 Jednoduchá webová aplikace pro děti procvičující čtení českých slov s použitím Web Speech API (cs-CZ). Funguje čistě na klientu, bez backendu.
 
+Aktuální verze: 1.0.2
+
 ## Spuštění lokálně
 - Otevři projekt v terminálu a spusť statický server (mikrofon ve většině prohlížečů potřebuje zabezpečený kontext):
   - `python3 -m http.server 4173` nebo `npx serve .`

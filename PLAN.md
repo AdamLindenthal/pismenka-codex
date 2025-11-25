@@ -1,6 +1,6 @@
 # Implementation Plan
 
-Goal: ship a mobile-first, client-only Czech reading practice app per `spelling_app_prompt.md`, with reliable Web Speech API usage on iOS/Android and a kid-friendly UI.
+Goal: ship a mobile-first, client-only Czech reading practice app per `spelling_app_prompt.md`, with reliable Web Speech API usage on iOS/Android and a kid-friendly UI. (Aktuální verze: 1.0.2)
 
 ## 1) Foundations & Setup
 - Initialize Vite (React or vanilla) with TypeScript, ESLint, Prettier; configure `cs-CZ` locale defaults.
