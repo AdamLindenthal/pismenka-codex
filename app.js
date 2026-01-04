@@ -1006,6 +1006,15 @@ function startRecognition() {
   }
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      // Ignore registration errors
+    });
+  });
+}
+
 function init() {
   ensureExternalData();
   hydrateFromStorage();
@@ -1061,6 +1070,7 @@ function init() {
   updateMissionUI();
   renderStickers();
   updateWord();
+  registerServiceWorker();
 }
 
 init();
