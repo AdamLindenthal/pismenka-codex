@@ -43,106 +43,6 @@ const LETTERS = [
   "Ž",
 ];
 
-const WORDS = [
-  "kočka",
-  "domeček",
-  "jablko",
-  "rodina",
-  "bota",
-  "auto",
-  "motorka",
-  "brýle",
-  "zahrada",
-  "pampeliška",
-  "motýlek",
-  "papoušek",
-  "kamarád",
-  "písmeno",
-  "knihovna",
-  "pohádka",
-  "třešně",
-  "jahoda",
-  "višně",
-  "banán",
-  "sklenice",
-  "čokoláda",
-  "kytara",
-  "písnička",
-  "králík",
-  "želva",
-  "andulka",
-  "sněhulák",
-  "zvířátko",
-  "barevný",
-  "barva",
-  "malování",
-  "sluníčko",
-  "hvězdička",
-  "měsíček",
-  "pískoviště",
-  "houpačka",
-  "klouzačka",
-  "koloběžka",
-  "tramvaj",
-  "vlakové",
-  "nádraží",
-  "vafle",
-  "dortík",
-  "chleba",
-  "máslo",
-  "polévka",
-  "snídaně",
-  "svačina",
-  "večeře",
-  "kamínek",
-  "větev",
-  "stromek",
-  "kapr",
-  "pstruh",
-  "žirafa",
-  "tygr",
-  "slonice",
-  "krokodýl",
-  "ježek",
-  "ježibaba",
-  "kouzelnice",
-  "čaroděj",
-  "perníček",
-  "sněženka",
-  "sedmikráska",
-  "pradědeček",
-  "babička",
-  "dědeček",
-  "maminka",
-  "tatínek",
-  "Petr",
-  "Lucie",
-  "Tereza",
-  "Matyáš",
-  "Adéla",
-  "Kristýna",
-  "Tomáš",
-  "Barbora",
-  "Dominik",
-  "Matouš",
-  "Mikuláš",
-  "Štěpán",
-  "Daniela",
-  "Zuzana",
-  "Vilém",
-  "Hynek",
-  "Praha",
-  "Brno",
-  "Ostrava",
-  "Olomouc",
-  "Zlín",
-  "Plzeň",
-  "Tábor",
-  "Třebíč",
-  "Český Krumlov",
-  "Jihlava",
-  "Hradec Králové",
-];
 
 const elements = {
   letters: document.querySelector("[data-letters]"),
@@ -154,14 +54,26 @@ const elements = {
   next: document.querySelector("[data-next]"),
   missionFill: document.querySelector("[data-mission-fill]"),
   missionMarker: document.querySelector("[data-mission-marker]"),
+  missionCount: document.querySelector("[data-mission-count]"),
+  missionGoal: document.querySelector("[data-mission-goal]"),
+  missionLabel: document.querySelector("[data-mission-label]"),
+  level: document.querySelector("[data-level]"),
+  stars: document.querySelector("[data-stars]"),
   soundToggle: document.querySelector("[data-sound-toggle]"),
   maxLengthInput: document.querySelector("[data-max-length]"),
   maxLengthValue: document.querySelector("[data-max-length-value]"),
   rewardModal: document.querySelector("[data-reward-modal]"),
   rewardText: document.querySelector("[data-reward-text]"),
+  rewardTitle: document.querySelector("[data-reward-title]"),
   rewardClose: document.querySelector("[data-reward-close]"),
   rewardImage: document.querySelector("[data-reward-image]"),
+  rewardIcon: document.querySelector("[data-reward-icon]"),
   stickersGrid: document.querySelector("[data-stickers-grid]"),
+  chest: document.querySelector("[data-chest]"),
+  chestCount: document.querySelector("[data-chest-count]"),
+  chestGoal: document.querySelector("[data-chest-goal]"),
+  chestButton: document.querySelector("[data-chest-button]"),
+  includePhrases: document.querySelector("[data-include-phrases]"),
   sideTabs: Array.from(document.querySelectorAll("[data-tab-target]")),
   tabPanels: Array.from(document.querySelectorAll("[data-tab-panel]")),
   version: document.querySelector("[data-version]"),
@@ -178,6 +90,7 @@ const STORAGE_KEYS = {
   rewards: "pismenkova_hra_reward_progress_v1",
   sideTab: "pismenkova_hra_side_tab_v1",
   maxLength: "pismenkova_hra_max_length_v1",
+  includePhrases: "pismenkova_hra_include_phrases_v1",
 };
 
 const DEFAULT_MAX_WORD_LENGTH = 7;
@@ -186,7 +99,7 @@ const APP_VERSION = window.APP_VERSION || "1.0.1";
 const state = {
   enabledLetters: new Set(LETTERS),
   panelCollapsed: false,
-  words: WORDS,
+  words: [],
   currentWord: null,
   renderedWord: null,
   recognition: null,
@@ -195,9 +108,14 @@ const state = {
   soundsEnabled: false,
   successCount: 0,
   unlockedStickers: new Set(),
+  stickerLevels: {},
+  level: 1,
+  mission: null,
+  starCount: 0,
   audioCache: {},
   activeSideTab: "stickers",
   maxWordLength: DEFAULT_MAX_WORD_LENGTH,
+  includePhrases: false,
 };
 
 const SOUND_PATHS = {
@@ -207,26 +125,17 @@ const SOUND_PATHS = {
   sticker: "assets/sounds/sticker-unlocked.m4a",
   micOn: "assets/sounds/mic-on.m4a",
 };
-const STICKERS = [
-  {
-    id: "sticker-01",
-    name: "Statečný čtenář",
-    image: "assets/sticker-01.png",
-    threshold: 5,
-  },
-  {
-    id: "sticker-02",
-    name: "Mistr kostek",
-    image: "assets/sticker-02.png",
-    threshold: 10,
-  },
-  {
-    id: "sticker-03",
-    name: "Atomový génius",
-    image: "assets/sticker-03.png",
-    threshold: 20,
-  },
-];
+let STICKERS = window.STICKERS || [];
+const externalLoadState = {
+  phrases: false,
+  stickers: false,
+};
+
+const MISSION_GOAL = 10;
+const LEVEL_STEP = 50;
+const SURPRISE_CHANCE = 0.3;
+const STAR_GOAL = 5;
+const MAX_STICKER_LEVEL = 3;
 
 function safeLoad(key, fallback) {
   try {
@@ -323,15 +232,61 @@ function persistMaxLength() {
   safeSave(STORAGE_KEYS.maxLength, state.maxWordLength);
 }
 
+function persistIncludePhrases() {
+  safeSave(STORAGE_KEYS.includePhrases, state.includePhrases);
+}
+
 function persistRewards() {
   safeSave(STORAGE_KEYS.rewards, {
     successCount: state.successCount,
     earned: Array.from(state.unlockedStickers),
+    stickerLevels: state.stickerLevels,
+    level: state.level,
+    mission: state.mission,
+    starCount: state.starCount,
   });
 }
 
 function persistSounds() {
   safeSave(STORAGE_KEYS.sounds, state.soundsEnabled);
+}
+
+function loadScriptOnce(src, onload) {
+  if (document.querySelector(`script[data-loader="${src}"]`)) return;
+  const script = document.createElement("script");
+  script.src = src;
+  script.dataset.loader = src;
+  script.onload = onload;
+  script.onerror = () => {
+    console.warn(`Nepodařilo se načíst ${src}`);
+  };
+  document.head.appendChild(script);
+}
+
+function ensureExternalData() {
+  if (!state.words.length && Array.isArray(window.PHRASES)) {
+    state.words = window.PHRASES;
+  } else if (!state.words.length && !externalLoadState.phrases) {
+    externalLoadState.phrases = true;
+    loadScriptOnce("phrases.js", () => {
+      if (Array.isArray(window.PHRASES)) {
+        state.words = window.PHRASES;
+        updateWord();
+      }
+    });
+  }
+  if (!STICKERS.length && Array.isArray(window.STICKERS)) {
+    STICKERS = window.STICKERS;
+  } else if (!STICKERS.length && !externalLoadState.stickers) {
+    externalLoadState.stickers = true;
+    loadScriptOnce("stickers.js", () => {
+      if (Array.isArray(window.STICKERS)) {
+        STICKERS = window.STICKERS;
+        renderStickers();
+        updateMissionUI();
+      }
+    });
+  }
 }
 
 function updateSoundToggleUI() {
@@ -356,39 +311,169 @@ function toggleSounds() {
   updateSoundToggleUI();
 }
 
-function nextRewardThreshold() {
-  const thresholds = STICKERS.map((s) => s.threshold).sort((a, b) => a - b);
-  return thresholds.find((t) => t > state.successCount) || thresholds[thresholds.length - 1] || 1;
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getDefaultStickerLevels() {
+  return STICKERS.reduce((acc, sticker) => {
+    acc[sticker.id] = 0;
+    return acc;
+  }, {});
+}
+
+function getWordLength(word) {
+  return word ? word.replace(/\s+/g, "").length : 0;
+}
+
+function normalizeStickerLevels(levels) {
+  const normalized = getDefaultStickerLevels();
+  if (levels && typeof levels === "object") {
+    Object.keys(normalized).forEach((id) => {
+      const value = Number(levels[id]);
+      if (!Number.isNaN(value)) {
+        normalized[id] = Math.max(0, Math.min(MAX_STICKER_LEVEL, Math.floor(value)));
+      }
+    });
+  }
+  return normalized;
+}
+
+function createMission() {
+  const missions = [
+    {
+      weight: 5,
+      build: () => ({
+        type: "words",
+        label: "Čtení slov",
+        goal: randomInt(8, 12),
+        progress: 0,
+      }),
+    },
+    {
+      weight: 3,
+      build: () => ({
+        type: "long",
+        label: "Delší slova (min. 6)",
+        goal: randomInt(4, 6),
+        progress: 0,
+      }),
+      guard: () => state.maxWordLength >= 6,
+    },
+    {
+      weight: 2,
+      build: () => ({
+        type: "wins",
+        label: "Úspěšná slova",
+        goal: randomInt(4, 6),
+        progress: 0,
+      }),
+    },
+  ].filter((mission) => (mission.guard ? mission.guard() : true));
+  const total = missions.reduce((sum, mission) => sum + mission.weight, 0);
+  let roll = Math.random() * total;
+  for (const mission of missions) {
+    if (roll < mission.weight) return mission.build();
+    roll -= mission.weight;
+  }
+  return missions[0].build();
+}
+
+function getMissionProgress() {
+  if (!state.mission) return 0;
+  return state.mission.progress;
+}
+
+function advanceMissionOnSuccess(word) {
+  if (!state.mission) state.mission = createMission();
+  if (state.mission.type === "long") {
+    if (getWordLength(word) >= 6) {
+      state.mission.progress = Math.min(state.mission.goal, state.mission.progress + 1);
+    }
+    return;
+  }
+  state.mission.progress = Math.min(state.mission.goal, state.mission.progress + 1);
+}
+
+function updateLevel() {
+  state.level = Math.floor(state.successCount / LEVEL_STEP) + 1;
+}
+
+function updateMetaUI() {
+  if (elements.level) {
+    elements.level.textContent = `Úroveň ${state.level}`;
+  }
+  if (elements.stars) {
+    elements.stars.textContent = `⭐ Truhla: ${state.starCount}/${STAR_GOAL}`;
+  }
+  if (elements.missionCount) {
+    elements.missionCount.textContent = String(
+      Math.min(state.mission?.goal || MISSION_GOAL, getMissionProgress())
+    );
+  }
+  if (elements.missionGoal) {
+    elements.missionGoal.textContent = String(state.mission?.goal || MISSION_GOAL);
+  }
+  if (elements.missionLabel) {
+    elements.missionLabel.textContent = state.mission?.label || "Čtení slov";
+  }
+}
+
+function updateChestUI() {
+  const count = Math.min(STAR_GOAL, state.starCount);
+  const ready = count >= STAR_GOAL;
+  if (elements.chestCount) {
+    elements.chestCount.textContent = String(count);
+  }
+  if (elements.chestGoal) {
+    elements.chestGoal.textContent = String(STAR_GOAL);
+  }
+  if (elements.chestButton) {
+    elements.chestButton.disabled = !ready;
+    elements.chestButton.textContent = ready ? "Otevřít truhlu" : "Sbírej hvězdy v misích";
+    elements.chestButton.setAttribute("aria-disabled", String(!ready));
+  }
+  if (elements.chest) {
+    elements.chest.classList.toggle("is-ready", ready);
+  }
 }
 
 function updateMissionUI() {
   if (!elements.missionFill || !elements.missionMarker) return;
-  const target = nextRewardThreshold();
-  const thresholds = STICKERS.map((s) => s.threshold).sort((a, b) => a - b);
-  const previousThreshold = thresholds.reduce((acc, t) => (t < target ? t : acc), 0);
-  const span = target - previousThreshold || target || 1;
+  if (!state.mission) state.mission = createMission();
   const progress = Math.min(
     1,
-    Math.max(0, (state.successCount - previousThreshold) / span)
+    Math.max(0, getMissionProgress() / (state.mission?.goal || MISSION_GOAL))
   );
   const width = `${progress * 100}%`;
   elements.missionFill.style.width = width;
   elements.missionMarker.style.left = width;
+  updateMetaUI();
+  updateChestUI();
 }
 
-function showReward(threshold) {
+function showReward({ title, text, image, imageAlt, confetti }) {
   if (!elements.rewardModal || !elements.rewardText) return;
-  const sticker = STICKERS.find((s) => s.threshold === threshold);
-  const name = sticker ? sticker.name : `Splněno ${threshold} slov!`;
-  elements.rewardText.textContent = sticker
-    ? `Získal jsi nálepku: ${name}!`
-    : `Splněno ${threshold} slov!`;
-  if (elements.rewardImage) {
-    elements.rewardImage.src = sticker ? sticker.image : "";
-    elements.rewardImage.alt = sticker ? name : "";
+  if (elements.rewardTitle) {
+    elements.rewardTitle.textContent = title || "Skvělé!";
+  }
+  elements.rewardText.textContent = text || "";
+  if (elements.rewardImage && elements.rewardIcon) {
+    if (image) {
+      elements.rewardImage.src = image;
+      elements.rewardImage.alt = imageAlt || "";
+      elements.rewardIcon.hidden = false;
+    } else {
+      elements.rewardImage.src = "";
+      elements.rewardImage.alt = "";
+      elements.rewardIcon.hidden = true;
+    }
   }
   elements.rewardModal.hidden = false;
   document.body.classList.add("modal-open");
+  if (confetti) {
+    launchConfetti();
+  }
 }
 
 function hideReward() {
@@ -397,30 +482,182 @@ function hideReward() {
   document.body.classList.remove("modal-open");
 }
 
-function recordSuccess() {
-  state.successCount += 1;
-  const newlyUnlocked = STICKERS.filter(
-    (s) => state.successCount >= s.threshold && !state.unlockedStickers.has(s.id)
-  );
-  if (newlyUnlocked.length) {
-    const sticker = newlyUnlocked[0];
-    state.unlockedStickers.add(sticker.id);
-    playSound("sticker");
-    showReward(sticker.threshold);
-    renderStickers();
+function pickRandomItem(items) {
+  if (!items.length) return null;
+  const index = Math.floor(Math.random() * items.length);
+  return items[index];
+}
+
+function launchConfetti() {
+  const colors = ["#00b894", "#6c5ce7", "#ffb347", "#ffd86a", "#7bed9f"];
+  const container = document.createElement("div");
+  container.className = "confetti";
+  const pieces = 16;
+  for (let i = 0; i < pieces; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti__piece";
+    const x = Math.round((Math.random() - 0.5) * 260);
+    const y = Math.round(200 + Math.random() * 160);
+    const r = Math.round(Math.random() * 360);
+    const delay = Math.random() * 0.2;
+    piece.style.setProperty("--x", `${x}px`);
+    piece.style.setProperty("--y", `${y}px`);
+    piece.style.setProperty("--r", `${r}deg`);
+    piece.style.setProperty("--delay", `${delay}s`);
+    piece.style.setProperty("--color", colors[i % colors.length]);
+    container.appendChild(piece);
   }
+  document.body.appendChild(container);
+  window.setTimeout(() => container.remove(), 1400);
+}
+
+function unlockSticker(sticker) {
+  if (!sticker) return;
+  state.unlockedStickers.add(sticker.id);
+}
+
+function upgradeSticker(sticker) {
+  if (!sticker) return;
+  const current = state.stickerLevels[sticker.id] || 0;
+  state.stickerLevels[sticker.id] = Math.min(MAX_STICKER_LEVEL, current + 1);
+}
+
+function getThresholdUnlock() {
+  return STICKERS.find(
+    (sticker) => state.successCount >= sticker.threshold && !state.unlockedStickers.has(sticker.id)
+  );
+}
+
+function grantSurpriseReward() {
+  const eligible = STICKERS.filter(
+    (sticker) => state.successCount >= sticker.threshold && !state.unlockedStickers.has(sticker.id)
+  );
+  if (eligible.length) {
+    const sticker = pickRandomItem(eligible);
+    unlockSticker(sticker);
+    playSound("sticker");
+    return {
+      title: "Tajná odměna!",
+      text: `Získal jsi nálepku: ${sticker.name}!`,
+      image: sticker.image,
+      imageAlt: sticker.name,
+    };
+  }
+  const upgradable = STICKERS.filter(
+    (sticker) =>
+      state.unlockedStickers.has(sticker.id) &&
+      (state.stickerLevels[sticker.id] || 0) < MAX_STICKER_LEVEL
+  );
+  if (upgradable.length) {
+    const sticker = pickRandomItem(upgradable);
+    upgradeSticker(sticker);
+    playSound("sticker");
+    return {
+      title: "Tajná odměna!",
+      text: `Nálepka ${sticker.name} je teď silnější! ⭐`,
+      image: sticker.image,
+      imageAlt: sticker.name,
+    };
+  }
+  return {
+    title: "Tajná odměna!",
+    text: "Skvělá práce! Pokračuj dál.",
+  };
+}
+
+function grantStarBonus() {
+  state.starCount = 0;
+  const bonus = grantSurpriseReward();
+  return {
+    ...bonus,
+    title: "Truhla odměn!",
+  };
+}
+
+function openChest() {
+  if (state.starCount < STAR_GOAL) return;
+  const bonus = grantStarBonus();
+  showReward({
+    ...bonus,
+    confetti: true,
+  });
   persistRewards();
   updateMissionUI();
+  renderStickers();
+}
+
+function recordSuccess() {
+  state.successCount += 1;
+  updateLevel();
+  advanceMissionOnSuccess(state.currentWord);
+
+  const thresholdSticker = getThresholdUnlock();
+  let rewardPayload = null;
+
+  if (thresholdSticker) {
+    unlockSticker(thresholdSticker);
+    playSound("sticker");
+    rewardPayload = {
+      title: "Nová nálepka!",
+      text: `Získal jsi nálepku: ${thresholdSticker.name}!`,
+      image: thresholdSticker.image,
+      imageAlt: thresholdSticker.name,
+    };
+  }
+
+  const missionCompleted =
+    state.mission && getMissionProgress() >= (state.mission.goal || MISSION_GOAL);
+  if (missionCompleted) {
+    state.starCount = Math.min(STAR_GOAL, state.starCount + 1);
+    const bonusPayload = Math.random() < SURPRISE_CHANCE ? grantSurpriseReward() : null;
+    const chestReady = state.starCount >= STAR_GOAL;
+
+    const pieces = ["Mise splněna!"];
+    if (thresholdSticker) {
+      pieces.push(`Získal jsi nálepku: ${thresholdSticker.name}!`);
+    }
+    if (bonusPayload) {
+      pieces.push(`Bonus: ${bonusPayload.text}`);
+    }
+    if (chestReady) {
+      pieces.push("Truhla je připravená! Otevři ji v nálepkách.");
+    } else {
+      pieces.push(`Získáváš hvězdu (${state.starCount}/${STAR_GOAL}).`);
+    }
+
+    rewardPayload = {
+      title: chestReady ? "Truhla je připravená!" : thresholdSticker ? "Dvojitá odměna!" : "Mise splněna!",
+      text: pieces.join(" "),
+      image: thresholdSticker?.image || bonusPayload?.image,
+      imageAlt: thresholdSticker?.name || bonusPayload?.imageAlt,
+      confetti: true,
+    };
+
+    state.mission = createMission();
+  } else if (rewardPayload) {
+    rewardPayload.confetti = false;
+  }
+
+  if (rewardPayload) {
+    showReward(rewardPayload);
+  }
+
+  persistRewards();
+  updateMissionUI();
+  renderStickers();
 }
 
 function renderStickers() {
+  ensureExternalData();
   if (!elements.stickersGrid) return;
   elements.stickersGrid.innerHTML = "";
   STICKERS.forEach((sticker) => {
     const unlocked = state.unlockedStickers.has(sticker.id);
+    const level = state.stickerLevels[sticker.id] || 0;
     const card = document.createElement("div");
     card.className = "sticker-card";
     if (unlocked) card.classList.add("is-unlocked");
+    if (unlocked && level > 0) card.classList.add(`level-${level}`);
     const img = document.createElement("img");
     img.src = sticker.image;
     img.alt = sticker.name;
@@ -428,6 +665,12 @@ function renderStickers() {
     const name = document.createElement("div");
     name.className = "sticker-card__name";
     name.textContent = sticker.name;
+    if (unlocked && level > 0) {
+      const levelBadge = document.createElement("span");
+      levelBadge.className = "sticker-card__level";
+      levelBadge.textContent = `⭐ ${level}`;
+      card.appendChild(levelBadge);
+    }
     if (!unlocked) {
       const lock = document.createElement("span");
       lock.className = "sticker-card__lock";
@@ -484,16 +727,32 @@ function hydrateFromStorage() {
   });
   state.successCount = Number(rewardProgress.successCount) || 0;
   state.unlockedStickers = new Set(rewardProgress.earned || []);
+  state.stickerLevels = normalizeStickerLevels(rewardProgress.stickerLevels);
+  updateLevel();
+  const savedMission = rewardProgress.mission;
+  if (savedMission && typeof savedMission === "object") {
+    const goal = Math.max(1, Number(savedMission.goal) || MISSION_GOAL);
+    state.mission = {
+      type: savedMission.type || "words",
+      label: savedMission.label || "Čtení slov",
+      goal,
+      progress: Math.min(goal, Math.max(0, Number(savedMission.progress) || 0)),
+    };
+  } else {
+    state.mission = createMission();
+  }
+  state.starCount = Math.max(0, Math.min(STAR_GOAL, Number(rewardProgress.starCount) || 0));
 
   const savedTab = safeLoad(STORAGE_KEYS.sideTab, "stickers");
   state.activeSideTab = savedTab === "settings" ? "settings" : "stickers";
 
   const savedMax = Number(safeLoad(STORAGE_KEYS.maxLength, DEFAULT_MAX_WORD_LENGTH));
-  if (!Number.isNaN(savedMax) && savedMax >= 3 && savedMax <= 12) {
+  if (!Number.isNaN(savedMax) && savedMax >= 0 && savedMax <= 12) {
     state.maxWordLength = savedMax;
   } else {
     state.maxWordLength = DEFAULT_MAX_WORD_LENGTH;
   }
+  state.includePhrases = Boolean(safeLoad(STORAGE_KEYS.includePhrases, false));
 }
 
 function wordUsesDisabledLetters(word) {
@@ -502,12 +761,25 @@ function wordUsesDisabledLetters(word) {
   return disabled.some((letter) => text.includes(letter.toUpperCase()));
 }
 
+function isWithinMaxLength(text) {
+  if (state.maxWordLength === 0) return true;
+  const parts = text.split(/\s+/).filter(Boolean);
+  return parts.every((part) => getWordLength(part) <= state.maxWordLength);
+}
+
 function getFilteredWords() {
-  const withinLength = state.words.filter(
-    (word) => word.length <= state.maxWordLength
-  );
+  ensureExternalData();
+  if (!state.mission) state.mission = createMission();
+  const withinLength = state.words.filter((word) => isWithinMaxLength(word));
   const pool = withinLength.length ? withinLength : state.words;
-  const filtered = pool.filter((word) => !wordUsesDisabledLetters(word));
+  const phraseFiltered = state.includePhrases
+    ? pool
+    : pool.filter((word) => !word.includes(" "));
+  const missionFiltered =
+    state.mission?.type === "long"
+      ? phraseFiltered.filter((word) => getWordLength(word) >= 6)
+      : phraseFiltered;
+  const filtered = missionFiltered.filter((word) => !wordUsesDisabledLetters(word));
   return filtered;
 }
 
@@ -590,15 +862,28 @@ function setMicListening(isListening) {
 }
 
 function setMaxLength(value) {
-  const clamped = Math.min(12, Math.max(3, Number(value) || DEFAULT_MAX_WORD_LENGTH));
+  const parsed = Number(value);
+  const clamped = Number.isNaN(parsed)
+    ? DEFAULT_MAX_WORD_LENGTH
+    : Math.min(12, Math.max(0, parsed));
   state.maxWordLength = clamped;
   if (elements.maxLengthInput) {
     elements.maxLengthInput.value = clamped;
   }
   if (elements.maxLengthValue) {
-    elements.maxLengthValue.textContent = `${clamped} písmen`;
+    elements.maxLengthValue.textContent =
+      clamped === 0 ? "Bez limitu" : `${clamped} písmen`;
   }
   persistMaxLength();
+  updateWord();
+}
+
+function setIncludePhrases(isEnabled) {
+  state.includePhrases = Boolean(isEnabled);
+  if (elements.includePhrases) {
+    elements.includePhrases.checked = state.includePhrases;
+  }
+  persistIncludePhrases();
   updateWord();
 }
 
@@ -722,6 +1007,7 @@ function startRecognition() {
 }
 
 function init() {
+  ensureExternalData();
   hydrateFromStorage();
   renderLetters();
   setActiveSideTab(state.activeSideTab);
@@ -750,11 +1036,20 @@ function init() {
       if (e.target === elements.rewardModal) hideReward();
     });
   }
+  if (elements.chestButton) {
+    elements.chestButton.addEventListener("click", openChest);
+  }
   if (elements.maxLengthInput) {
     elements.maxLengthInput.addEventListener("input", (e) =>
       setMaxLength(e.target.value)
     );
     setMaxLength(state.maxWordLength);
+  }
+  if (elements.includePhrases) {
+    elements.includePhrases.addEventListener("change", (e) =>
+      setIncludePhrases(e.target.checked)
+    );
+    setIncludePhrases(state.includePhrases);
   }
   if (!hasSpeechRecognition()) {
     elements.mic.disabled = true;

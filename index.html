@@ -36,6 +36,18 @@
       </div>
       <div class="panel__content">
         <div class="panel__stickers" data-tab-panel="stickers">
+          <div class="chest" data-chest>
+            <div class="chest__header">
+              <span class="chest__icon" aria-hidden="true">🎁</span>
+              <div>
+                <div class="chest__title">Tajemná truhla</div>
+                <div class="chest__progress">Hvězdy: <strong data-chest-count>0</strong>/<strong data-chest-goal>5</strong></div>
+              </div>
+            </div>
+            <button class="chest__button" type="button" data-chest-button disabled>
+              Sbírej hvězdy v misích
+            </button>
+          </div>
           <div class="stickers" data-stickers>
             <div class="stickers__title">Moje nálepky</div>
             <div class="stickers__grid" data-stickers-grid></div>
@@ -48,8 +60,15 @@
           <div class="setting-row">
             <div class="setting-row__label">Maximální délka slova</div>
             <div class="setting-row__control">
-              <input type="range" min="3" max="12" value="7" step="1" data-max-length aria-label="Maximální délka slova">
+              <input type="range" min="0" max="12" value="7" step="1" data-max-length aria-label="Maximální délka slova">
               <div class="setting-row__value" data-max-length-value>7 písmen</div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__label">Povolit věty a slovní spojení</div>
+            <div class="setting-row__control">
+              <input type="checkbox" data-include-phrases id="include-phrases">
+              <label for="include-phrases">Zobrazovat fráze</label>
             </div>
           </div>
           <div class="panel__letters letter-grid" data-letters></div>
@@ -62,7 +81,11 @@
       <div class="mission">
         <div class="mission__label">
           <span class="mission__icon" aria-hidden="true">⭐</span>
-          <span>Dnešní mise: 10 slov</span>
+          <span>Mise: <span data-mission-label>Čtení slov</span> — <strong data-mission-count>0</strong>/<strong data-mission-goal>10</strong></span>
+        </div>
+        <div class="mission__meta">
+          <span class="mission__pill" data-level>Úroveň 1</span>
+          <span class="mission__pill" data-stars>⭐ Truhla: 0/5</span>
         </div>
         <div class="mission__bar">
           <span class="mission__fill" data-mission-fill></span>
@@ -91,10 +114,10 @@
   <div class="reward-modal" data-reward-modal hidden>
     <div class="reward-modal__content">
       <button class="reward-modal__close" type="button" data-reward-close aria-label="Zavřít" role="button" tabindex="0">✕</button>
-      <div class="reward-modal__icon">
+      <div class="reward-modal__icon" data-reward-icon>
         <img src="" alt="" data-reward-image class="reward-modal__image">
       </div>
-      <h3>Skvělé! Získal jsi nálepku!</h3>
+      <h3 data-reward-title>Skvělé!</h3>
       <p class="reward-modal__text" data-reward-text></p>
     </div>
   </div>
@@ -103,6 +126,8 @@
     <p>Všechny texty jsou v češtině, funguje offline po prvním načtení.</p>
   </footer>
 
+  <script src="phrases.js"></script>
+  <script src="stickers.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

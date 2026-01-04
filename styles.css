@@ -415,6 +415,24 @@ h1 {
   align-items: center;
 }
 
+.mission__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.mission__pill {
+  background: #ffffff;
+  border: 1px solid #cde2fa;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #3c5572;
+  box-shadow: 0 3px 8px rgba(36, 59, 83, 0.12);
+}
+
 .mission__icon {
   display: inline-flex;
   align-items: center;
@@ -664,6 +682,107 @@ button {
   overflow: auto;
 }
 
+.chest {
+  background: linear-gradient(180deg, #fff7e6, #ffe8c4);
+  border: 1px solid #f5c27b;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 24px rgba(245, 194, 123, 0.35);
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chest__header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.chest__icon {
+  font-size: 28px;
+}
+
+.chest__title {
+  font-weight: 800;
+  color: #7a4e00;
+}
+
+.chest__progress {
+  font-weight: 700;
+  color: #855400;
+  font-size: 13px;
+}
+
+.chest__button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 800;
+  background: #ffcc75;
+  color: #6b3f00;
+  cursor: pointer;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chest__button:hover:enabled {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(107, 63, 0, 0.2);
+}
+
+.chest__button:disabled {
+  background: #ffe7b8;
+  color: #a07b3b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.chest.is-ready {
+  animation: chest-wiggle 1.8s ease-in-out infinite;
+  box-shadow: 0 16px 32px rgba(245, 194, 123, 0.45);
+}
+
+.chest.is-ready::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle, rgba(255, 214, 100, 0.35), transparent 60%);
+  opacity: 0.9;
+  animation: chest-glow 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes chest-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(-1.5deg) translateY(-2px);
+  }
+  50% {
+    transform: rotate(1.5deg) translateY(-2px);
+  }
+  75% {
+    transform: rotate(-1deg) translateY(-1px);
+  }
+}
+
+@keyframes chest-glow {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
 .stickers__title {
   font-weight: 800;
   margin-bottom: 8px;
@@ -693,15 +812,31 @@ button {
   border-color: #00b894;
 }
 
+.sticker-card.is-unlocked.level-1 {
+  border-color: #c58b2b;
+  box-shadow: 0 8px 16px rgba(197, 139, 43, 0.28);
+}
+
+.sticker-card.is-unlocked.level-2 {
+  border-color: #8aa5c8;
+  box-shadow: 0 8px 16px rgba(138, 165, 200, 0.3);
+}
+
+.sticker-card.is-unlocked.level-3 {
+  border-color: #f4c542;
+  box-shadow: 0 8px 16px rgba(244, 197, 66, 0.34);
+}
+
 .sticker-card__image {
   width: 60px;
   height: 60px;
   object-fit: contain;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.12));
-  opacity: 0.65;
+  filter: grayscale(1) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.12));
+  opacity: 0.35;
 }
 
 .sticker-card.is-unlocked .sticker-card__image {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.12));
   opacity: 1;
 }
 
@@ -716,6 +851,20 @@ button {
   position: absolute;
   top: 8px;
   right: 8px;
+}
+
+.sticker-card__level {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #7a5b00;
+  border: 1px solid #f6d365;
+  box-shadow: 0 4px 10px rgba(122, 91, 0, 0.15);
 }
 
 .app-footer {
@@ -752,8 +901,14 @@ button {
 }
 
 .reward-modal__icon {
-  font-size: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
   filter: drop-shadow(0 6px 10px rgba(0, 184, 148, 0.24));
+}
+
+.reward-modal__icon[hidden] {
+  display: none;
 }
 
 .reward-modal__image {
@@ -778,6 +933,39 @@ button {
 .reward-modal__text {
   margin: 8px 0 0;
   color: var(--text);
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.confetti__piece {
+  position: absolute;
+  left: 50%;
+  top: 35%;
+  width: 10px;
+  height: 6px;
+  background: var(--color, #00b894);
+  border-radius: 3px;
+  transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+  opacity: 0;
+  animation: confetti-fall 1.1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 220px)))
+      rotate(calc(var(--r, 0deg) + 180deg));
+    opacity: 0;
+  }
 }
 
 /* Noise overlay for panels */
