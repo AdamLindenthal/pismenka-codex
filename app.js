@@ -809,7 +809,13 @@ function setFeedback(message, type = "info") {
 }
 
 function normalizeWord(word) {
-  return word ? word.trim().toLocaleLowerCase("cs-CZ") : "";
+  return word
+    ? word
+        .trim()
+        .toLocaleLowerCase("cs-CZ")
+        .replace(/[^\p{L}\p{N}\s]/gu, "")
+        .replace(/\s+/g, " ")
+    : "";
 }
 
 function getSpeechRecognitionConstructor() {
