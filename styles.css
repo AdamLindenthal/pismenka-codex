@@ -517,7 +517,7 @@ h1 {
   font-size: clamp(42px, 8vw, 64px);
   font-weight: 800;
   letter-spacing: 1.2px;
-  font-family: "Lexend", "Atkinson Hyperlegible", "Inter", system-ui, sans-serif;
+  font-family: "Atkinson Hyperlegible", "Lexend", "Inter", system-ui, sans-serif;
 }
 
 .word.bump {

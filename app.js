@@ -94,7 +94,9 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_MAX_WORD_LENGTH = 7;
-const APP_VERSION = window.APP_VERSION || "1.0.1";
+function getAppVersion() {
+  return window.APP_VERSION || "dev";
+}
 
 const state = {
   enabledLetters: new Set(LETTERS),
@@ -112,6 +114,7 @@ const state = {
   level: 1,
   mission: null,
   starCount: 0,
+  recentWords: [],
   audioCache: {},
   activeSideTab: "stickers",
   maxWordLength: DEFAULT_MAX_WORD_LENGTH,
@@ -136,6 +139,7 @@ const LEVEL_STEP = 50;
 const SURPRISE_CHANCE = 0.3;
 const STAR_GOAL = 5;
 const MAX_STICKER_LEVEL = 3;
+const RECENT_WORD_LIMIT = 10;
 
 function safeLoad(key, fallback) {
   try {
@@ -703,7 +707,7 @@ function setActiveSideTab(tab) {
     elements.letters.style.display = tab === "settings" ? "grid" : "none";
   }
   if (elements.version) {
-    elements.version.textContent = `Verze: ${APP_VERSION}`;
+    elements.version.textContent = `Verze: ${getAppVersion()}`;
   }
 }
 
@@ -831,8 +835,19 @@ function pickRandomWord() {
   if (!pool.length) {
     return null;
   }
-  const index = Math.floor(Math.random() * pool.length);
-  return pool[index];
+  const recent = new Set(state.recentWords.map((word) => normalizeWord(word)));
+  const candidates = pool.filter((word) => !recent.has(normalizeWord(word)));
+  const selectionPool = candidates.length ? candidates : pool;
+  const index = Math.floor(Math.random() * selectionPool.length);
+  const choice = selectionPool[index];
+  const normalized = normalizeWord(choice);
+  if (normalized) {
+    state.recentWords = [
+      normalized,
+      ...state.recentWords.filter((word) => word !== normalized),
+    ].slice(0, RECENT_WORD_LIMIT);
+  }
+  return choice;
 }
 
 function updateWord() {
@@ -1026,6 +1041,11 @@ function init() {
   hydrateFromStorage();
   renderLetters();
   setActiveSideTab(state.activeSideTab);
+  window.addEventListener("app-version", () => {
+    if (elements.version) {
+      elements.version.textContent = `Verze: ${getAppVersion()}`;
+    }
+  });
   elements.sideTabs.forEach((btn) => {
     btn.addEventListener("click", () =>
       setActiveSideTab(btn.getAttribute("data-tab-target") || "stickers")

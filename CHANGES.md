@@ -9,3 +9,13 @@
 - Added a parent-focused “Maximální délka slova” slider in the Nastavení tab (default 7, range 3–12) that filters available words; preference is stored in localStorage and updates the word pool immediately.
 - Strengthened motion: mascots float with bigger bob/tilt, XP orb gently bobs/scales, and a few background atoms/cubes drift; main action buttons are now icon-only (microphone/next) with aria labels and sr-only text for accessibility.
 - Updated sound mappings to new transparent PNG set and .m4a audio: tile, success, try-again now point to assets/sounds/*.m4a; added sticker unlock sound; mic-on reserved for later.
+- Overhauled rewards: missions now vary (words/long words/successes), a star-based mystery chest loop was added, and confetti celebrates mission completion; streaks removed.
+- Externalized data into `phrases.js` and `stickers.js`, added `sticker-prompts.md` for image generation, and expanded sticker set to 18 with thresholds up to 170.
+- Added settings for including phrases, updated length filtering to apply per-word (with a "Bez limitu" option), and improved speech matching by ignoring punctuation.
+- Improved readability by prioritizing Atkinson Hyperlegible for the displayed word; locked stickers are dimmed with grayscale.
+- Reduced repetition via a recent-word cooldown (last 10 items) and filtered long-word missions to only surface suitable words.
+- Made the app installable as a PWA: manifest, service worker caching, and app icons (`assets/icon-192.png`, `assets/icon-512.png`).
+- Externalized phrases and stickers to `phrases.js` / `stickers.js`, added a toggle to include phrases, and improved punctuation-insensitive speech matching for phrases.
+- Added a mystery chest with stars, confetti, and ready-state animation; expanded stickers and added `sticker-prompts.md`.
+- Made locked stickers dimmer, switched word font to Atkinson Hyperlegible, and added a 10-word no-repeat window.
+- Added automatic app versioning with a human-friendly date + hash format.

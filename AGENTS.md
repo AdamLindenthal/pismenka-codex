@@ -29,6 +29,8 @@ This repository holds a client-side Czech reading practice app for kids (see `sp
 - Follow Conventional Commits (`feat:`, `fix:`, `chore:`, `test:`); keep messages in present tense.
 - PRs should include: summary of changes, testing done (`npm run lint`, `npm run test`), and mobile notes if relevant (devices/browsers tried).
 - Link issues when available; add Czech UI screenshots or GIFs for UI changes, especially on tablet viewports.
+- Keep `CHANGES.md` updated with user-visible changes whenever features, UI, assets, or behavior are modified.
+- Bump the app version for every change so the UI shows the current version clearly.
 
 ## Architecture & Mobile Notes
 - The app is client-only; avoid server dependencies. Persist preferences (letter toggles, panel state) via `localStorage`.
