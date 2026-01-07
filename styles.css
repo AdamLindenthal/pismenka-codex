@@ -810,6 +810,12 @@ button {
 .sticker-card.is-unlocked {
   background: linear-gradient(180deg, rgba(0, 184, 148, 0.12), #f7f9ff);
   border-color: #00b894;
+  cursor: pointer;
+}
+
+.sticker-card.is-unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(36, 59, 83, 0.18);
 }
 
 .sticker-card.is-unlocked.level-1 {

@@ -669,6 +669,17 @@ function renderStickers() {
     const name = document.createElement("div");
     name.className = "sticker-card__name";
     name.textContent = sticker.name;
+    if (unlocked) {
+      const levelLabel = level > 0 ? ` · ⭐ ${level}` : "";
+      card.addEventListener("click", () => {
+        showReward({
+          title: sticker.name,
+          text: `Moje nálepka${levelLabel}`,
+          image: sticker.image,
+          imageAlt: sticker.name,
+        });
+      });
+    }
     if (unlocked && level > 0) {
       const levelBadge = document.createElement("span");
       levelBadge.className = "sticker-card__level";
