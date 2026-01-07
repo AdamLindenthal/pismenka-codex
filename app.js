@@ -68,6 +68,7 @@ const elements = {
   rewardClose: document.querySelector("[data-reward-close]"),
   rewardImage: document.querySelector("[data-reward-image]"),
   rewardIcon: document.querySelector("[data-reward-icon]"),
+  rewardBadge: document.querySelector("[data-reward-badge]"),
   stickersGrid: document.querySelector("[data-stickers-grid]"),
   chest: document.querySelector("[data-chest]"),
   chestCount: document.querySelector("[data-chest-count]"),
@@ -456,12 +457,13 @@ function updateMissionUI() {
   updateChestUI();
 }
 
-function showReward({ title, text, image, imageAlt, confetti }) {
+function showReward({ title, text, image, imageAlt, badge, hideText, confetti }) {
   if (!elements.rewardModal || !elements.rewardText) return;
   if (elements.rewardTitle) {
     elements.rewardTitle.textContent = title || "Skvělé!";
   }
   elements.rewardText.textContent = text || "";
+  elements.rewardText.hidden = Boolean(hideText);
   if (elements.rewardImage && elements.rewardIcon) {
     if (image) {
       elements.rewardImage.src = image;
@@ -471,6 +473,15 @@ function showReward({ title, text, image, imageAlt, confetti }) {
       elements.rewardImage.src = "";
       elements.rewardImage.alt = "";
       elements.rewardIcon.hidden = true;
+    }
+  }
+  if (elements.rewardBadge) {
+    if (badge) {
+      elements.rewardBadge.textContent = badge;
+      elements.rewardBadge.hidden = false;
+    } else {
+      elements.rewardBadge.textContent = "";
+      elements.rewardBadge.hidden = true;
     }
   }
   elements.rewardModal.hidden = false;
@@ -670,13 +681,15 @@ function renderStickers() {
     name.className = "sticker-card__name";
     name.textContent = sticker.name;
     if (unlocked) {
-      const levelLabel = level > 0 ? ` · ⭐ ${level}` : "";
+      const badge = level > 0 ? `⭐ ${level}` : "";
       card.addEventListener("click", () => {
         showReward({
           title: sticker.name,
-          text: `Moje nálepka${levelLabel}`,
+          text: "",
           image: sticker.image,
           imageAlt: sticker.name,
+          badge,
+          hideText: true,
         });
       });
     }

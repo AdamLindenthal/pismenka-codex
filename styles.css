@@ -911,6 +911,9 @@ button {
   place-items: center;
   margin-bottom: 12px;
   filter: drop-shadow(0 6px 10px rgba(0, 184, 148, 0.24));
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .reward-modal__icon[hidden] {
@@ -918,9 +921,23 @@ button {
 }
 
 .reward-modal__image {
-  width: 96px;
-  height: 96px;
+  width: 128px;
+  height: 128px;
   object-fit: contain;
+}
+
+.reward-modal__badge {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  background: #ffd86a;
+  color: #6b3f00;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 800;
+  font-size: 12px;
+  border: 1px solid #f6c453;
+  box-shadow: 0 6px 14px rgba(107, 63, 0, 0.2);
 }
 
 .reward-modal__close {
@@ -934,6 +951,7 @@ button {
   height: 32px;
   cursor: pointer;
   font-weight: 800;
+  z-index: 2;
 }
 
 .reward-modal__text {
