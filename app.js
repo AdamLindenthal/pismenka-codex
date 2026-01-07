@@ -75,6 +75,10 @@ const elements = {
   chestGoal: document.querySelector("[data-chest-goal]"),
   chestButton: document.querySelector("[data-chest-button]"),
   includePhrases: document.querySelector("[data-include-phrases]"),
+  updateManual: document.querySelector("[data-update-manual]"),
+  exportRewards: document.querySelector("[data-export-rewards]"),
+  importRewards: document.querySelector("[data-import-rewards]"),
+  rewardsData: document.querySelector("[data-rewards-data]"),
   sideTabs: Array.from(document.querySelectorAll("[data-tab-target]")),
   tabPanels: Array.from(document.querySelectorAll("[data-tab-panel]")),
   version: document.querySelector("[data-version]"),
@@ -136,6 +140,13 @@ const externalLoadState = {
 };
 
 let swVersionTag = null;
+
+function isStandaloneDisplay() {
+  return (
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true
+  );
+}
 
 const MISSION_GOAL = 10;
 const LEVEL_STEP = 50;
@@ -254,6 +265,60 @@ function persistRewards() {
   });
 }
 
+function exportRewardsData() {
+  return JSON.stringify(
+    {
+      successCount: state.successCount,
+      earned: normalizeEarnedList(Array.from(state.unlockedStickers)),
+      stickerLevels: state.stickerLevels,
+      level: state.level,
+      mission: state.mission,
+      starCount: state.starCount,
+    },
+    null,
+    2
+  );
+}
+
+function applyRewardsData(payload) {
+  if (!payload || typeof payload !== "object") return false;
+  if (Object.prototype.hasOwnProperty.call(payload, "successCount")) {
+    state.successCount = Number(payload.successCount) || 0;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "earned")) {
+    state.unlockedStickers = new Set(normalizeEarnedList(payload.earned));
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "stickerLevels")) {
+    state.stickerLevels = normalizeStickerLevels(payload.stickerLevels);
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "level")) {
+    state.level = Number(payload.level) || Math.floor(state.successCount / LEVEL_STEP) + 1;
+  } else {
+    state.level = Math.floor(state.successCount / LEVEL_STEP) + 1;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "mission")) {
+    if (payload.mission && typeof payload.mission === "object") {
+      const goal = Math.max(1, Number(payload.mission.goal) || MISSION_GOAL);
+      state.mission = {
+        type: payload.mission.type || "words",
+        label: payload.mission.label || "Čtení slov",
+        goal,
+        progress: Math.min(goal, Math.max(0, Number(payload.mission.progress) || 0)),
+      };
+    } else {
+      state.mission = createMission();
+    }
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "starCount")) {
+    state.starCount = Math.max(0, Math.min(STAR_GOAL, Number(payload.starCount) || 0));
+  }
+  persistRewards();
+  updateMissionUI();
+  renderStickers();
+  updateWord();
+  return true;
+}
+
 function persistSounds() {
   safeSave(STORAGE_KEYS.sounds, state.soundsEnabled);
 }
@@ -327,6 +392,16 @@ function getDefaultStickerLevels() {
     acc[sticker.id] = 0;
     return acc;
   }, {});
+}
+
+function normalizeEarnedList(list) {
+  const raw = Array.isArray(list) ? list : [];
+  const stickerIds = STICKERS.length ? new Set(STICKERS.map((sticker) => sticker.id)) : null;
+  const filtered = raw.filter((item) => typeof item === "string");
+  if (stickerIds) {
+    return filtered.filter((item) => stickerIds.has(item));
+  }
+  return filtered.filter((item) => item.startsWith("sticker-"));
 }
 
 function getWordLength(word) {
@@ -756,7 +831,7 @@ function hydrateFromStorage() {
     earned: [],
   });
   state.successCount = Number(rewardProgress.successCount) || 0;
-  state.unlockedStickers = new Set(rewardProgress.earned || []);
+  state.unlockedStickers = new Set(normalizeEarnedList(rewardProgress.earned));
   state.stickerLevels = normalizeStickerLevels(rewardProgress.stickerLevels);
   updateLevel();
   const savedMission = rewardProgress.mission;
@@ -1065,6 +1140,20 @@ function registerServiceWorker() {
   });
 }
 
+async function forceAppUpdate() {
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((reg) => reg.unregister()));
+  }
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("update", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
 function init() {
   ensureExternalData();
   hydrateFromStorage();
@@ -1114,6 +1203,34 @@ function init() {
       setIncludePhrases(e.target.checked)
     );
     setIncludePhrases(state.includePhrases);
+  }
+  if (elements.exportRewards && elements.rewardsData) {
+    elements.exportRewards.addEventListener("click", () => {
+      elements.rewardsData.value = exportRewardsData();
+      elements.rewardsData.focus();
+      elements.rewardsData.select();
+    });
+  }
+  if (elements.importRewards && elements.rewardsData) {
+    elements.importRewards.addEventListener("click", () => {
+      const raw = elements.rewardsData.value.trim();
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        const ok = applyRewardsData(parsed);
+        if (!ok) {
+          setFeedback("Import se nepodařil. Zkontroluj data.", "error");
+        } else {
+          setFeedback("Odměny byly obnoveny.", "success");
+          elements.rewardsData.value = "";
+        }
+      } catch (err) {
+        setFeedback("Neplatný formát JSON.", "error");
+      }
+    });
+  }
+  if (elements.updateManual) {
+    elements.updateManual.addEventListener("click", forceAppUpdate);
   }
   if ("serviceWorker" in navigator) {
     window.addEventListener("app-version", () => {

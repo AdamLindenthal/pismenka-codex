@@ -246,6 +246,10 @@ h1 {
   gap: 8px;
 }
 
+.setting-row--spaced {
+  margin-bottom: 18px;
+}
+
 .setting-row__label {
   font-weight: 800;
   color: var(--text);
@@ -269,6 +273,18 @@ h1 {
   color: #3c5572;
 }
 
+
+.setting-row__textarea {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 10px;
+  border: 1px solid #cde2fa;
+  padding: 8px;
+  font-family: "Lexend", "Atkinson Hyperlegible", "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  resize: vertical;
+}
+
 .version-pill {
   margin-top: 12px;
   padding: 8px 10px;
@@ -277,7 +293,21 @@ h1 {
   color: #6c7a92;
   font-weight: 700;
   font-size: 12px;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.version-pill__button {
+  background: transparent;
+  border: none;
+  color: #6c7a92;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
 }
 
 .panel::before {

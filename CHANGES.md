@@ -20,3 +20,7 @@
 - Made locked stickers dimmer, switched word font to Atkinson Hyperlegible, and added a 10-word no-repeat window.
 - Added automatic app versioning with a human-friendly date + hash format.
 - Added automatic cache versioning based on the app version.
+- Added a manual “Aktualizovat” action next to the version label that clears caches in the PWA, or reloads in a browser, without touching stored progress.
+- Added rewards export/import in settings so sticker progress can be backed up and restored via JSON.
+- Added a manual update action that cache-busts reloads to ensure fresh files even in the browser.
+- Update action now clears service worker + caches even in browser mode before cache-busting reloads.

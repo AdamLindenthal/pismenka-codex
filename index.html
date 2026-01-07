@@ -74,7 +74,18 @@
             </div>
           </div>
           <div class="panel__letters letter-grid" data-letters></div>
-          <div class="version-pill" data-version>Verze: 1.0.2</div>
+          <div class="setting-row setting-row--spaced">
+            <div class="setting-row__label">Záloha odměn</div>
+            <div class="setting-row__control">
+              <button type="button" class="ghost-btn" data-export-rewards>Exportovat</button>
+              <button type="button" class="ghost-btn" data-import-rewards>Importovat</button>
+            </div>
+            <textarea class="setting-row__textarea" rows="4" data-rewards-data placeholder="Vlož sem zálohu odměn (JSON)"></textarea>
+          </div>
+          <div class="version-pill">
+            <span data-version>Verze: 1.0.2</span>
+            <button type="button" class="version-pill__button" data-update-manual>Aktualizovat</button>
+          </div>
         </div>
       </div>
     </section>
@@ -126,7 +137,7 @@
   </div>
 
   <footer class="app-footer">
-    <p>Všechny texty jsou v češtině, funguje offline po prvním načtení.</p>
+    <p><a href="https://github.com/AdamLindenthal/pismenka-codex" target="_blank" rel="noreferrer">created by táta</a></p>
   </footer>
 
   <script src="phrases.js"></script>
