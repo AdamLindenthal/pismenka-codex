@@ -1,4 +1,5 @@
-const CACHE_NAME = "pismenkova-hra-v1";
+const VERSION = new URL(self.location).searchParams.get("v") || "v1";
+const CACHE_NAME = `pismenkova-hra-${VERSION}`;
 const ASSETS = [
   ".",
   "index.html",
@@ -73,4 +74,10 @@ self.addEventListener("fetch", (event) => {
       });
     })
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });

@@ -99,6 +99,7 @@ body::before {
   text-align: center;
 }
 
+
 h1 {
   margin: 0;
   font-size: clamp(32px, 5vw, 44px);

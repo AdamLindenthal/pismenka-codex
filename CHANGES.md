@@ -19,3 +19,4 @@
 - Added a mystery chest with stars, confetti, and ready-state animation; expanded stickers and added `sticker-prompts.md`.
 - Made locked stickers dimmer, switched word font to Atkinson Hyperlegible, and added a 10-word no-repeat window.
 - Added automatic app versioning with a human-friendly date + hash format.
+- Added automatic cache versioning based on the app version.

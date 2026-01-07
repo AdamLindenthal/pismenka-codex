@@ -135,6 +135,8 @@ const externalLoadState = {
   stickers: false,
 };
 
+let swVersionTag = null;
+
 const MISSION_GOAL = 10;
 const LEVEL_STEP = 50;
 const SURPRISE_CHANCE = 0.3;
@@ -1053,10 +1055,13 @@ function startRecognition() {
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {
-      // Ignore registration errors
-    });
+  const version = getAppVersion();
+  if (version && version === swVersionTag) return;
+  swVersionTag = version;
+  const swUrl = `sw.js?v=${encodeURIComponent(version)}`;
+
+  navigator.serviceWorker.register(swUrl).catch(() => {
+    // Ignore registration errors
   });
 }
 
@@ -1109,6 +1114,11 @@ function init() {
       setIncludePhrases(e.target.checked)
     );
     setIncludePhrases(state.includePhrases);
+  }
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("app-version", () => {
+      registerServiceWorker();
+    });
   }
   if (!hasSpeechRecognition()) {
     elements.mic.disabled = true;
